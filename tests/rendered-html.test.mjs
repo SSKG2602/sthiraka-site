@@ -43,12 +43,15 @@ test("server-renders the complete Sthiraka homepage", async () => {
   assert.match(html, /98\.66% micro required-slot coverage/);
   assert.match(html, /X-Frame-Options: DENY/);
   assert.doesNotMatch(html, /<iframe\b/i);
+  assert.doesNotMatch(html, /github\.com\/hanjiale\/Temporal-GraphRAG/i);
 });
 
 test("renders privacy and branded not-found routes", async () => {
   const privacy = await render("/privacy");
   assert.equal(privacy.status, 200);
-  assert.match(await privacy.text(), /Privacy notice/i);
+  const privacyHtml = await privacy.text();
+  assert.match(privacyHtml, /Privacy notice/i);
+  assert.match(privacyHtml, /processed by Web3Forms for delivery to Sthiraka/i);
 
   const missing = await render("/this-route-does-not-exist");
   assert.equal(missing.status, 404);
@@ -96,11 +99,12 @@ test("keeps intro, proof and form behavior explicit in source", async () => {
   assert.match(layout, /\/og\.png/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 
-  assert.match(adapter, /NEXT_PUBLIC_WORKFLOW_FORM_ENDPOINT/);
-  assert.match(adapter, /if \(!endpoint\)/);
+  assert.match(adapter, /NEXT_PUBLIC_WORKFLOW_ENDPOINT/);
+  assert.match(adapter, /NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY/);
   assert.match(adapter, /Your information was not sent/);
-  assert.match(adapter, /if \(!response\.ok\)/);
+  assert.match(adapter, /responseBody\.success !== true/);
   assert.match(adapter, /return \{ ok: true \}/);
+  assert.match(page, /name="botcheck"/);
 });
 
 test("ships the required brand, proof, discovery and crawler assets", async () => {

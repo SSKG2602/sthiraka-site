@@ -7,6 +7,7 @@ export type WorkflowInquiry = {
   constraint: string;
   changeRequired?: string;
   consent: boolean;
+  botcheck?: string;
 };
 
 export type WorkflowSubmissionResult =
@@ -15,15 +16,16 @@ export type WorkflowSubmissionResult =
 
 /**
  * The website never pretends an inquiry was delivered. Configure
- * NEXT_PUBLIC_WORKFLOW_FORM_ENDPOINT with an HTTPS endpoint that accepts JSON
- * before enabling live submissions.
+ * NEXT_PUBLIC_WORKFLOW_ENDPOINT and NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY before
+ * enabling live submissions.
  */
 export async function submitWorkflowInquiry(
   inquiry: WorkflowInquiry,
 ): Promise<WorkflowSubmissionResult> {
-  const endpoint = process.env.NEXT_PUBLIC_WORKFLOW_FORM_ENDPOINT?.trim();
+  const endpoint = process.env.NEXT_PUBLIC_WORKFLOW_ENDPOINT?.trim();
+  const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY?.trim();
 
-  if (!endpoint) {
+  if (!endpoint || !accessKey || accessKey === "PASTE_YOUR_ACCESS_KEY_HERE") {
     return {
       ok: false,
       reason: "not-configured",
@@ -35,11 +37,35 @@ export async function submitWorkflowInquiry(
   try {
     const response = await fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(inquiry),
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        access_key: accessKey,
+        subject: "New Sthiraka Workflow Inquiry",
+        from_name: "Sthiraka Website",
+        name: inquiry.name,
+        email: inquiry.email,
+        replyto: inquiry.email,
+        company: inquiry.company,
+        role: inquiry.role,
+        workflow: inquiry.workflow,
+        constraint: inquiry.constraint,
+        changeRequired: inquiry.changeRequired ?? "",
+        consent: inquiry.consent,
+        botcheck: inquiry.botcheck ?? "",
+      }),
     });
+    const responseBody: unknown = await response.json();
 
-    if (!response.ok) {
+    if (
+      !response.ok ||
+      typeof responseBody !== "object" ||
+      responseBody === null ||
+      !("success" in responseBody) ||
+      responseBody.success !== true
+    ) {
       return {
         ok: false,
         reason: "request-failed",

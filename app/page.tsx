@@ -90,7 +90,6 @@ const publicLinks = [
   ["GitHub", "https://github.com/SSKG2602/ChronoRAG-G"],
   ["DOI", "https://doi.org/10.5281/zenodo.22116070"],
   ["Zenodo", "https://zenodo.org/records/22116070"],
-  ["Temporal-GraphRAG", "https://github.com/hanjiale/Temporal-GraphRAG"],
   ["ECT-QA", "https://huggingface.co/datasets/austinmyc/ECT-QA"],
 ] as const;
 
@@ -298,6 +297,7 @@ function WorkflowInquiryForm() {
       constraint: String(data.get("constraint")),
       changeRequired: String(data.get("changeRequired") ?? ""),
       consent: true,
+      botcheck: String(data.get("botcheck") ?? ""),
     };
     const result = await submitWorkflowInquiry(inquiry);
     if (result.ok) {
@@ -313,6 +313,7 @@ function WorkflowInquiryForm() {
 
   return (
     <form className="inquiry-form" noValidate onSubmit={onSubmit}>
+      <input name="botcheck" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" hidden />
       {errors.length > 0 ? (
         <div className="form-error-summary" role="alert" tabIndex={-1} ref={errorRef}>
           <strong>Please review {errors.length === 1 ? "this field" : "these fields"}:</strong>

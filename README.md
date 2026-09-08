@@ -41,36 +41,41 @@ the application. Recheck the header before changing this integration.
 
 ## Connect the workflow inquiry form
 
-The workflow inquiry UI is intentionally not a fake backend. Before publishing, set
-`NEXT_PUBLIC_WORKFLOW_FORM_ENDPOINT` to a real HTTPS endpoint that accepts and
-delivers workflow inquiries:
+The workflow inquiry UI is intentionally not a fake backend. Before publishing,
+configure the Web3Forms endpoint and access key:
 
 ```bash
 # .env.local (do not commit this file)
-NEXT_PUBLIC_WORKFLOW_FORM_ENDPOINT=https://your-form-handler.example/submit
+NEXT_PUBLIC_WORKFLOW_ENDPOINT=https://api.web3forms.com/submit
+NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY=your_web3forms_access_key
 ```
 
-The website sends a `POST` request with `Content-Type: application/json`. The JSON
-payload contains these fields:
+The website sends a JSON `POST` request with `Accept: application/json` and
+`Content-Type: application/json`. The payload contains these fields:
 
 ```text
+access_key
+subject
+from_name
 name
 email
+replyto
 company
 role
 workflow
 constraint
 changeRequired
 consent
+botcheck
 ```
 
-The endpoint should validate the required fields, process the inquiry securely and
-return a successful HTTP status only after accepting it. Restart the local preview
-after changing the variable.
+The site reports success only when Web3Forms returns a successful HTTP status and a
+JSON response whose `success` value is `true`. Restart the local preview after
+changing either variable.
 
-When `NEXT_PUBLIC_WORKFLOW_FORM_ENDPOINT` is absent, the website does **not** send the
+When either environment variable is absent, the website does **not** send the
 submission and does **not** report success. A failed endpoint request is also shown as
-a failure, so the visitor can email `contact@sthiraka.com` instead.
+a failure, so the visitor can email `shreyas@sthiraka.com` instead.
 
 The endpoint, its access controls, retention policy and production privacy terms are
 deployment responsibilities; do not publish the form until those are configured and

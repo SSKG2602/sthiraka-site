@@ -56,9 +56,9 @@ export default function PrivacyPage() {
           <section className="legal-section" aria-labelledby="submission-heading">
             <h2 id="submission-heading">Submission status</h2>
             <p>
-              The form requires a connected submission endpoint. If the site reports
-              that your inquiry could not be sent, treat it as not submitted and use
-              the contact address below instead.
+              Workflow-form submissions are processed by Web3Forms for delivery to
+              Sthiraka. If the site reports that your inquiry could not be sent, treat
+              it as not submitted and use the contact address below instead.
             </p>
           </section>
 

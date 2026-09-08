@@ -165,7 +165,7 @@ p, h1, h2, h3, h4, ol, ul, blockquote { margin-top: 0; }
   overflow: hidden;
   opacity: 1;
   background: #090b10;
-  transition: opacity 460ms ease;
+  transition: opacity var(--intro-fade-duration, 460ms) ease;
 }
 html[data-intro-seen="true"] .intro-overlay { display: none; }
 .intro-overlay[data-state="leaving"] { opacity: 0; pointer-events: none; }
@@ -233,7 +233,7 @@ html[data-intro-seen="true"] .intro-overlay { display: none; }
   gap: 20px;
   opacity: 0;
   transform: translate(-50%, -48%);
-  animation: emblem-arrival 5s ease both;
+  animation: emblem-arrival var(--intro-emblem-duration, 5s) ease both;
 }
 .intro-emblem img { width: clamp(94px, 13vw, 164px); height: auto; filter: invert(1) drop-shadow(0 0 28px rgba(255,229,160,.24)); }
 .intro-emblem span { color: var(--surface); font-size: .78rem; font-weight: 600; letter-spacing: .48em; text-indent: .48em; }
@@ -258,7 +258,7 @@ html[data-intro-seen="true"] .intro-overlay { display: none; }
   font-family: var(--mono);
   font-size: .71rem;
   letter-spacing: .06em;
-  animation: skip-arrival 240ms ease 500ms forwards;
+  animation: skip-arrival var(--intro-skip-duration, 240ms) ease var(--intro-skip-delay, 500ms) forwards;
 }
 .intro-skip:hover { border-color: var(--star); }
 @keyframes skip-arrival { to { opacity: 1; } }

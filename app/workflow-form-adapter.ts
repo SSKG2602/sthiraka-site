@@ -12,37 +12,23 @@ export type WorkflowInquiry = {
 
 export type WorkflowSubmissionResult =
   | { ok: true }
-  | { ok: false; reason: "not-configured" | "request-failed"; message: string };
+  | { ok: false; reason: "request-failed"; message: string };
 
-/**
- * The website never pretends an inquiry was delivered. Configure
- * NEXT_PUBLIC_WORKFLOW_ENDPOINT and NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY before
- * enabling live submissions.
- */
+const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
+const WEB3FORMS_ACCESS_KEY = "cd219ffb-cc2a-4a10-9d47-db22e38c3764";
+
 export async function submitWorkflowInquiry(
   inquiry: WorkflowInquiry,
 ): Promise<WorkflowSubmissionResult> {
-  const endpoint = process.env.NEXT_PUBLIC_WORKFLOW_ENDPOINT?.trim();
-  const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY?.trim();
-
-  if (!endpoint || !accessKey || accessKey === "PASTE_YOUR_ACCESS_KEY_HERE") {
-    return {
-      ok: false,
-      reason: "not-configured",
-      message:
-        "Online submission is not connected yet. Your information was not sent.",
-    };
-  }
-
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetch(WEB3FORMS_ENDPOINT, {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        access_key: accessKey,
+        access_key: WEB3FORMS_ACCESS_KEY,
         subject: "New Sthiraka Workflow Inquiry",
         from_name: "Sthiraka Website",
         name: inquiry.name,
@@ -51,8 +37,10 @@ export async function submitWorkflowInquiry(
         company: inquiry.company,
         role: inquiry.role,
         workflow: inquiry.workflow,
-        constraint: inquiry.constraint,
-        changeRequired: inquiry.changeRequired ?? "",
+        humanControlledReason: inquiry.constraint,
+        ...(inquiry.changeRequired
+          ? { desiredChange: inquiry.changeRequired }
+          : {}),
         consent: inquiry.consent,
         botcheck: inquiry.botcheck ?? "",
       }),

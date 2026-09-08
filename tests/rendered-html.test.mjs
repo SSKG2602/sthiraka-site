@@ -89,7 +89,9 @@ test("keeps intro, proof and form behavior explicit in source", async () => {
 
   assert.match(page, /sthiraka_intro_seen_v1/);
   assert.match(page, /prefers-reduced-motion: reduce/);
-  assert.match(page, /reduceMotion \? 380 : 5000/);
+  assert.match(page, /const INTRO_PLAYBACK_RATE = 1\.4/);
+  assert.match(page, /reduceMotion \? 380 : introDuration\(5000\)/);
+  assert.match(page, /playbackRate = INTRO_PLAYBACK_RATE/);
   assert.match(page, /event\.key === "Escape"/);
   assert.match(page, /NEXT_PUBLIC_INTRO_MEDIA_READY/);
   assert.match(page, /chronorag-g-replay\.webp/);
@@ -99,10 +101,13 @@ test("keeps intro, proof and form behavior explicit in source", async () => {
   assert.match(layout, /\/og\.png/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 
-  assert.match(adapter, /NEXT_PUBLIC_WORKFLOW_ENDPOINT/);
-  assert.match(adapter, /NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY/);
-  assert.match(adapter, /Your information was not sent/);
+  assert.match(adapter, /const WEB3FORMS_ENDPOINT = "https:\/\/api\.web3forms\.com\/submit"/);
+  assert.match(adapter, /const WEB3FORMS_ACCESS_KEY = "[0-9a-f-]{36}"/);
+  assert.doesNotMatch(adapter, /process\.env\.NEXT_PUBLIC_WORKFLOW/);
+  assert.doesNotMatch(adapter, /Online submission is not connected yet/);
   assert.match(adapter, /responseBody\.success !== true/);
+  assert.match(adapter, /humanControlledReason/);
+  assert.match(adapter, /desiredChange/);
   assert.match(adapter, /return \{ ok: true \}/);
   assert.match(page, /name="botcheck"/);
 });

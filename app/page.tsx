@@ -9,6 +9,9 @@ import {
 } from "./workflow-form-adapter";
 
 const INTRO_KEY = "sthiraka_intro_seen_v1";
+const INTRO_PLAYBACK_RATE = 1.4;
+const introDuration = (milliseconds: number) =>
+  Math.round(milliseconds / INTRO_PLAYBACK_RATE);
 const INTRO_MEDIA_READY =
   process.env.NEXT_PUBLIC_INTRO_MEDIA_READY === "true";
 
@@ -145,12 +148,18 @@ function IntroOverlay() {
 
     dismissTimer.current = setTimeout(
       () => setState("leaving"),
-      reduceMotion ? 120 : 4540,
+      reduceMotion ? 120 : introDuration(4540),
     );
-    hideTimer.current = setTimeout(complete, reduceMotion ? 380 : 5000);
+    hideTimer.current = setTimeout(
+      complete,
+      reduceMotion ? 380 : introDuration(5000),
+    );
     const focusTimer = reduceMotion
       ? null
-      : setTimeout(() => skipRef.current?.focus({ preventScroll: true }), 560);
+      : setTimeout(
+          () => skipRef.current?.focus({ preventScroll: true }),
+          introDuration(560),
+        );
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -158,7 +167,10 @@ function IntroOverlay() {
         if (dismissTimer.current) clearTimeout(dismissTimer.current);
         if (hideTimer.current) clearTimeout(hideTimer.current);
         setState("leaving");
-        hideTimer.current = setTimeout(complete, 320);
+        hideTimer.current = setTimeout(
+          complete,
+          reduceMotion ? 320 : introDuration(320),
+        );
       }
     };
 
@@ -186,7 +198,7 @@ function IntroOverlay() {
       page?.removeAttribute("inert");
       page?.removeAttribute("aria-hidden");
       document.body.classList.remove("intro-active");
-    }, 320);
+    }, introDuration(320));
   };
 
   if (state === "hidden") return null;
@@ -198,6 +210,12 @@ function IntroOverlay() {
       role="dialog"
       aria-modal="true"
       aria-label="Sthiraka opening film"
+      style={{
+        "--intro-fade-duration": `${introDuration(460)}ms`,
+        "--intro-emblem-duration": `${introDuration(5000)}ms`,
+        "--intro-skip-duration": `${introDuration(240)}ms`,
+        "--intro-skip-delay": `${introDuration(500)}ms`,
+      } as React.CSSProperties}
     >
       <div className="intro-fallback" aria-hidden="true">
         <span className="intro-star" />
@@ -214,6 +232,9 @@ function IntroOverlay() {
           preload="metadata"
           poster="/assets/intro/sthiraka-intro-poster.webp"
           aria-hidden="true"
+          onLoadedMetadata={(event) => {
+            event.currentTarget.playbackRate = INTRO_PLAYBACK_RATE;
+          }}
           onError={() => setMediaFailed(true)}
         >
           <source src="/assets/intro/sthiraka-intro.webm" type="video/webm" />

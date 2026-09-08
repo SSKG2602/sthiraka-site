@@ -41,14 +41,8 @@ the application. Recheck the header before changing this integration.
 
 ## Connect the workflow inquiry form
 
-The workflow inquiry UI is intentionally not a fake backend. Before publishing,
-configure the Web3Forms endpoint and access key:
-
-```bash
-# .env.local (do not commit this file)
-NEXT_PUBLIC_WORKFLOW_ENDPOINT=https://api.web3forms.com/submit
-NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY=your_web3forms_access_key
-```
+The workflow inquiry UI posts directly from the browser to Web3Forms using the
+public client access key in `app/workflow-form-adapter.ts`.
 
 The website sends a JSON `POST` request with `Accept: application/json` and
 `Content-Type: application/json`. The payload contains these fields:
@@ -63,19 +57,16 @@ replyto
 company
 role
 workflow
-constraint
-changeRequired
+humanControlledReason
+desiredChange (when provided)
 consent
 botcheck
 ```
 
 The site reports success only when Web3Forms returns a successful HTTP status and a
 JSON response whose `success` value is `true`. Restart the local preview after
-changing either variable.
-
-When either environment variable is absent, the website does **not** send the
-submission and does **not** report success. A failed endpoint request is also shown as
-a failure, so the visitor can email `shreyas@sthiraka.com` instead.
+changing the adapter. A failed endpoint request is shown as a failure, so the visitor
+can email `shreyas@sthiraka.com` instead.
 
 The endpoint, its access controls, retention policy and production privacy terms are
 deployment responsibilities; do not publish the form until those are configured and

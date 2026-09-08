@@ -18,19 +18,10 @@ const inquiry = {
 
 test("Web3Forms adapter sends the complete payload and requires confirmed success", async (t) => {
   const originalFetch = globalThis.fetch;
-  const originalEndpoint = process.env.NEXT_PUBLIC_WORKFLOW_ENDPOINT;
-  const originalAccessKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY;
 
   t.after(() => {
     globalThis.fetch = originalFetch;
-    if (originalEndpoint === undefined) delete process.env.NEXT_PUBLIC_WORKFLOW_ENDPOINT;
-    else process.env.NEXT_PUBLIC_WORKFLOW_ENDPOINT = originalEndpoint;
-    if (originalAccessKey === undefined) delete process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY;
-    else process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY = originalAccessKey;
   });
-
-  process.env.NEXT_PUBLIC_WORKFLOW_ENDPOINT = endpoint;
-  process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY = "test-access-key";
 
   await t.test("posts Web3Forms JSON with visitor email as Reply-To", async () => {
     let capturedUrl;
@@ -50,8 +41,10 @@ test("Web3Forms adapter sends the complete payload and requires confirmed succes
     const headers = new Headers(capturedInit.headers);
     assert.equal(headers.get("Accept"), "application/json");
     assert.equal(headers.get("Content-Type"), "application/json");
-    assert.deepEqual(JSON.parse(capturedInit.body), {
-      access_key: "test-access-key",
+    const body = JSON.parse(capturedInit.body);
+    assert.match(body.access_key, /^[0-9a-f-]{36}$/);
+    assert.deepEqual(body, {
+      access_key: body.access_key,
       subject: "New Sthiraka Workflow Inquiry",
       from_name: "Sthiraka Website",
       name: inquiry.name,
@@ -60,8 +53,8 @@ test("Web3Forms adapter sends the complete payload and requires confirmed succes
       company: inquiry.company,
       role: inquiry.role,
       workflow: inquiry.workflow,
-      constraint: inquiry.constraint,
-      changeRequired: inquiry.changeRequired,
+      humanControlledReason: inquiry.constraint,
+      desiredChange: inquiry.changeRequired,
       consent: true,
       botcheck: "",
     });
@@ -90,18 +83,19 @@ test("Web3Forms adapter sends the complete payload and requires confirmed succes
     assert.equal((await submitWorkflowInquiry(inquiry)).ok, false);
   });
 
-  await t.test("does not send when configuration is incomplete", async () => {
-    delete process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY;
-    let called = false;
-    globalThis.fetch = async () => {
-      called = true;
-      return new Response(JSON.stringify({ success: true }), { status: 200 });
+  await t.test("omits the optional desired change when it is empty", async () => {
+    let capturedBody;
+    globalThis.fetch = async (_url, init) => {
+      capturedBody = JSON.parse(init.body);
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     };
-    assert.deepEqual(await submitWorkflowInquiry(inquiry), {
-      ok: false,
-      reason: "not-configured",
-      message: "Online submission is not connected yet. Your information was not sent.",
-    });
-    assert.equal(called, false);
+    assert.deepEqual(
+      await submitWorkflowInquiry({ ...inquiry, changeRequired: "" }),
+      { ok: true },
+    );
+    assert.equal("desiredChange" in capturedBody, false);
   });
 });
